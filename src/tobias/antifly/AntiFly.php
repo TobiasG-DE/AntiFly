@@ -5,8 +5,11 @@ use tobias\antifly\Listener\AntiFlyListener;
 
 class AntiFly extends PluginBase
 {
+    private FlagManager $flagManager;
+
     public function onEnable(): void
     {
-        $this->getServer()->getPluginManager()->registerEvents(new AntiFlyListener(), $this);
+        $this->flagManager = new FlagManager();
+        $this->getServer()->getPluginManager()->registerEvents(new AntiFlyListener($this->flagManager), $this);
     }
 }
