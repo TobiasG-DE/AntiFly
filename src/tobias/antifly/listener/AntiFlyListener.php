@@ -81,6 +81,9 @@ class AntiFlyListener implements Listener
         }
     }
 
+    // Usually I would add another event handler here to block clients from setting themselves in AdventureSettingsPacket.ALLOW_FLIGHT,
+    // but as Horion doesn't work I don't have a reliable way to test this
+
     public function onQuit(PlayerQuitEvent $event)
     {
         $this->flagManager->reset($event->getPlayer()->getName());
