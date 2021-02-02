@@ -13,11 +13,14 @@ use tobias\antifly\FlagManager;
 class AntiFlyListener implements Listener
 {
 
+    # Tresholds
     public const SAME_Y_TRESHOLD = 20;
     public const PLAYER_HIGHER_TRESHOLD = 20;
 
+    # Check data values
     public const PLAYER_LAST_Y = 1;
 
+    # Flag per Check IDs
     public const OFFSET_PLAYER = 200;
     public const PLAYER_SAME_Y = self::OFFSET_PLAYER + 1;
     public const PLAYER_HIGHER = self::OFFSET_PLAYER + 2;
@@ -34,30 +37,31 @@ class AntiFlyListener implements Listener
         $packet = $event->getPacket();
         $session = $event->getOrigin();
         $player = $session->getPlayer();
-
+        $flagManager = $this->flagManager;
+        
         if ($packet instanceof MovePlayerPacket) {
 
             if ($player->getPosition()->equals($packet->position)) return; // Head Rotation
             if($packet->teleportCause !== 0) return; // Ignore teleports
-            
+
             $ground = $packet->onGround; // We technically cannot trust this as it's sent by the client
             if ($ground) { // Reset the fly values when the player touches the ground
-                $this->flagManager->update($player->getName(), self::PLAYER_SAME_Y, 0);
-                $this->flagManager->update($player->getName(), self::PLAYER_HIGHER, 0);
+                $flagManager->update($player->getName(), self::PLAYER_SAME_Y, 0);
+                $flagManager->update($player->getName(), self::PLAYER_HIGHER, 0);
                 return;
             }
 
             // Calculating of the current y and last-y
             $y = round($packet->position->y - $player->getEyeHeight(), 4);
-            $oldY = $this->flagManager->get($player->getName(), self::PLAYER_LAST_Y);
+            $oldY = $flagManager->get($player->getName(), self::PLAYER_LAST_Y);
             if ($oldY === null) {
                 $oldY = round($player->getPosition()->getY(), 4);
             }
 
             // Start same-y check
-            $this->flagManager->update($player->getName(), self::PLAYER_LAST_Y, $y);
+            $flagManager->update($player->getName(), self::PLAYER_LAST_Y, $y);
             if ($y === $oldY) {
-                $value = $this->flagManager->increase($player->getName(), self::PLAYER_SAME_Y);
+                $value = $flagManager->increase($player->getName(), self::PLAYER_SAME_Y);
                 if ($value > self::SAME_Y_TRESHOLD) {
                     $player->kick("§cYou were kicked: same-y", "AntiCheat: Same-y");
                 }
@@ -69,12 +73,12 @@ class AntiFlyListener implements Listener
             // Start rising-fly check
             $rising = ($oldY < $y);
             if ($rising) {
-                $val = $this->flagManager->increase($player->getName(), self::PLAYER_HIGHER);
+                $val = $flagManager->increase($player->getName(), self::PLAYER_HIGHER);
                 if ($val > self::PLAYER_HIGHER_TRESHOLD) {
                     $player->kick("§cYou were kicked: rising-fly", "AntiCheat: Rising-Fly");
                 }
             } else {
-                $this->flagManager->decrease($player->getName(), self::PLAYER_HIGHER);
+                $flagManager->decrease($player->getName(), self::PLAYER_HIGHER);
             }
             // End rising-fly check
         }

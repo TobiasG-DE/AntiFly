@@ -39,13 +39,11 @@ class FlagManager
 
         if ($currentValue === null) {
             $this->update($playerName, $flagId, $factor);
-            $newValue = $factor;
+            return $factor;
         } else {
             $this->update($playerName, $flagId, $currentValue + $factor);
-            $newValue = $currentValue + $factor;
+            return $currentValue + $factor;
         }
-
-        return $newValue;
     }
 
     public function decrease(string $playerName, int $flagId): int
