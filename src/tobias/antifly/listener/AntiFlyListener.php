@@ -39,8 +39,7 @@ class AntiFlyListener implements Listener
 
             if ($player->getPosition()->equals($packet->position)) return; // Head Rotation
             if($packet->teleportCause !== 0) return; // Ignore teleports
-
-            //var_dump($player->getPosition());
+            
             $ground = $packet->onGround; // We technically cannot trust this as it's sent by the client
             if ($ground) { // Reset the fly values when the player touches the ground
                 $this->flagManager->update($player->getName(), self::PLAYER_SAME_Y, 0);
