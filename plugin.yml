@@ -1,0 +1,5 @@
+name: AntiFly
+author: TobiasDev
+main: tobias\antifly\AntiFly
+version: "1.0"
+api: ["4.0.0"]
