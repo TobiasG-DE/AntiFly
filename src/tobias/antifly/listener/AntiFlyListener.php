@@ -61,8 +61,8 @@ class AntiFlyListener implements Listener
                 $value = $this->flagManager->increase($player->getName(), self::PLAYER_SAME_Y);
                 if ($value > self::SAME_Y_TRESHOLD) {
                     $player->kick("§cYou were kicked: same-y", "AntiCheat: Same-y");
-                    return;
                 }
+                return;
             }
             // End same-y check
 
