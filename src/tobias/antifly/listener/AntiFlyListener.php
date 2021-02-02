@@ -33,15 +33,17 @@ class AntiFlyListener implements Listener
             $ground = $packet->onGround; // We technically cannot trust this as it's sent by the client
             if ($ground) {
                 $this->update($player->getName(), self::PLAYER_SAME_Y, 0);
+                $this->update($player->getName(), self::PLAYER_HIGHER, 0);
                 return;
             }
-            var_dump($player->getInAirTicks());
+
+            $y = round($packet->position->y - $player->getEyeHeight(), 4);
+            $oldY = $this->get($player->getName(), self::PLAYER_LAST_Y);
+            if ($oldY === null) {
+                $oldY = round($player->getPosition()->getY(), 4);
+            }
+
             if ($packet->teleportCause === 0) {
-                $y = round($packet->position->y - $player->getEyeHeight(), 4);
-                $oldY = $this->get($player->getName(), self::PLAYER_LAST_Y);
-                if ($oldY === null) {
-                    $oldY = round($player->getPosition()->getY(), 4);
-                }
                 $this->update($player->getName(), self::PLAYER_LAST_Y, $y);
                 if ($y === $oldY) {
                     $value = $this->increase($player->getName(), self::PLAYER_SAME_Y);
@@ -50,6 +52,15 @@ class AntiFlyListener implements Listener
                         return;
                     }
                 }
+            }
+            $rising = ($oldY < $y); // This triggers with jump boost 20+
+            if ($rising) {
+                $val = $this->increase($player->getName(), self::PLAYER_HIGHER);
+                if ($val > self::FLAG_TRESHOLD) {
+                    $player->kick("Rising-Fly");
+                }
+            } else {
+                $this->decrease($player->getName(), self::PLAYER_HIGHER);
             }
         }
     }
@@ -78,17 +89,22 @@ class AntiFlyListener implements Listener
         return null;
     }
 
-    public function increase(string $playerName, int $flagId): int
+    public function increase(string $playerName, int $flagId, int $factor = 1): int
     {
         $currentValue = $this->get($playerName, $flagId);
         if ($currentValue === null) {
-            $this->update($playerName, $flagId, 1);
-            $newValue = 1;
+            $this->update($playerName, $flagId, $factor);
+            $newValue = $factor;
         } else {
-            $this->update($playerName, $flagId, $currentValue + 1);
-            $newValue = $currentValue + 1;
+            $this->update($playerName, $flagId, $currentValue + $factor);
+            $newValue = $currentValue + $factor;
         }
         return $newValue;
+    }
+
+    public function decrease(string $playerName, int $flagId)
+    {
+        $this->increase($playerName, $flagId, -1);
     }
 
 }
